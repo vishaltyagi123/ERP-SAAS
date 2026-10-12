@@ -1,0 +1,57 @@
+version: '3.8'
+
+# Development compose - only database services
+# Run backend and frontend locally with npm run start:dev
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: erp_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: erp_saas
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - erp_dev_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: erp_redis_dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - erp_dev_network
+
+  minio:
+    image: minio/minio:latest
+    container_name: erp_minio_dev
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_dev_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - erp_dev_network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  minio_dev_data:
+
+networks:
+  erp_dev_network:
+    driver: bridge
